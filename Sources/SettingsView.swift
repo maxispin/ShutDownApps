@@ -1,11 +1,10 @@
 import SwiftUI
-import ServiceManagement
 import UniformTypeIdentifiers
 
 struct SettingsView: View {
     @ObservedObject var store: RuleStore
     @ObservedObject var monitor: Monitor
-    @State private var launchAtLogin = SMAppService.mainApp.status == .enabled
+    @State private var launchAtLogin = LoginItem.isEnabled
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -45,7 +44,10 @@ struct SettingsView: View {
                 Spacer()
                 Toggle("Keskeytä valvonta", isOn: $store.paused)
                 Toggle("Käynnistä kirjautuessa", isOn: $launchAtLogin)
-                    .onChange(of: launchAtLogin) { _, on in setLaunchAtLogin(on) }
+                    .onChange(of: launchAtLogin) { _, on in
+                        LoginItem.set(on)
+                        launchAtLogin = LoginItem.isEnabled
+                    }
             }
         }
         .padding(20)
@@ -75,15 +77,6 @@ struct SettingsView: View {
                 .replacingOccurrences(of: ".app", with: "")
             store.add(bundleId: id, name: name)
         }
-    }
-
-    private func setLaunchAtLogin(_ on: Bool) {
-        do {
-            if on { try SMAppService.mainApp.register() } else { try SMAppService.mainApp.unregister() }
-        } catch {
-            NSLog("Käynnistä kirjautuessa -asetus epäonnistui: \(error)")
-        }
-        launchAtLogin = SMAppService.mainApp.status == .enabled
     }
 }
 

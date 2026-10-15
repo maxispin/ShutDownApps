@@ -18,6 +18,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         statusItem.menu = menu
 
         NSApp.mainMenu = makeMainMenu()
+        LoginItem.refreshLocation()
         if store.isFirstLaunch { openSettings() }
     }
 
@@ -113,6 +114,15 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         NSApp.activate(ignoringOtherApps: true)
         settingsWindow?.makeKeyAndOrderFront(nil)
     }
+}
+
+// `ShutDownApps --enable-login-item` kytkee "Käynnistä kirjautuessa" -asetuksen päälle
+// tälle sijainnille ja lopettaa (käytetään esim. asennuksen jälkeen).
+if CommandLine.arguments.contains("--enable-login-item") {
+    LoginItem.set(true)
+    print(LoginItem.isEnabled ? "Käynnistä kirjautuessa: päällä (\(Bundle.main.bundlePath))"
+                              : "Käynnistä kirjautuessa: ei onnistunut")
+    exit(LoginItem.isEnabled ? 0 : 1)
 }
 
 MainActor.assumeIsolated {
